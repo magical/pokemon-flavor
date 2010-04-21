@@ -16,7 +16,7 @@ if version in ('gold', 'silver', 'g', 's'):
     # Pokémon #1, #65, #129, #193 (Bulbasaur, Alakazam, Magikarp, Yanma)
     offsets = (0x1a0000, 0x1a4000, 0x1a8000, 0x1ac000)
 elif version in ('crystal', 'c'):
-    # same as GS
+    # same Pokémon as GS
     offsets = (0x181695, 0x1b8000, 0x1cc000, 0x1d0000)
 else:
     print("Usage: gsc_pokemon.py {ROM} {version}")
@@ -37,15 +37,15 @@ for line in open('gsc.tbl'):
 pokemon_names = open('pokemon.txt')
 game = open(argv[1], 'rb')
 
-offset = 0
-game.seek(offsets[offset])
+block = 0
+game.seek(offsets[block])
 
 for pokemon in range(251):
     name = pokemon_names.readline().strip()
     print(name)            # Bulbasaur
     print('=' * len(name)) # =========
 
-    # species name (e.g. Bulbasaur is the "SEED" Pokémon)
+    # classification (e.g. Bulbasaur is the "SEED" Pokémon)
     while game.read(1) != b'\x50':
         pass
 
@@ -65,5 +65,5 @@ for pokemon in range(251):
         print('\n\n', end='')
 
     if pokemon % 64 == 63: # remember, Zhorken, we're starting from zero
-        offset += 1
-        game.seek(offsets[offset])
+        block += 1
+        game.seek(offsets[block])
