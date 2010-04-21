@@ -17,8 +17,6 @@ else:
     exit(1)
 
 table = {}
-pokemon_names = []
-
 
 for line in open('gsc.tbl'):
     line = line.rstrip('\n')
