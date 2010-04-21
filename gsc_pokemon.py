@@ -53,7 +53,7 @@ for pokemon in range(251):
                 break
 
             print(table.setdefault(
-                ord(byte), '\\x{0:2x}'.format(ord(byte))
+                ord(byte), '\\x{0:02x}'.format(ord(byte))
             ), end='')
 
         print('\n\n', end='')
