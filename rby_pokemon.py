@@ -32,7 +32,7 @@ game.seek(offset)
 for pokemon in range(151):
     name = pokemon_names.readline().rstrip()
     print(name)            # Bulbasaur
-    print('=' * len(name)) # ======
+    print('=' * len(name)) # =========
 
     game.read(1) # \x00
 
