@@ -2,6 +2,7 @@ from sys import argv
 
 if len(argv) < 3:
     print("Usage: gsc_pokemon.py {ROM} {version}")
+    exit(1)
 
 version = argv[2].lower()
 
@@ -13,6 +14,7 @@ elif version in ('crystal', 'c'):
     offsets = (0x181695, 0x1b8000, 0x1cc000, 0x1d0000)
 else:
     print("Usage: gsc_pokemon.py {ROM} {version}")
+    exit(1)
 
 table = {}
 pokemon_names = []

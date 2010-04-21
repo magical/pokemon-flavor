@@ -2,6 +2,7 @@ from sys import argv
 
 if len(argv) < 3:
     print("Usage: rby_pokemon.py {ROM} {version}")
+    exit(1)
 
 version = argv[2].lower()
 
@@ -13,6 +14,7 @@ elif version in ('yellow', 'y'):
     pokemon_names = open('pokemon.txt')
 else:
     print("Usage: rby_pokemon.py {ROM} {version}")
+    exit(1)
 
 table = {}
 
