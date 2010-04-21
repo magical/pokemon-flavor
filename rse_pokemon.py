@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from sys import argv
 
 version = argv[2].lower()
