@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+# encoding: utf8
+"""Extracts Pokémon flavour (Pokédex) text from a ROM image of any of the
+second-generation Pokémon games.
+"""
+
 from sys import argv
 
 if len(argv) < 3:
