@@ -3,11 +3,16 @@ from sys import argv
 version = argv[2].lower()
 if version in ('ruby', 'r'):
     offset = 0x3a0675
+    pages = 2
 elif version in('sapphire', 's'):
     offset = 0x3a04bd
+    pages = 2
+elif version in('emerald', 'e'):
+    offset = 0x55d389
+    pages = 1
 
 table = {}
-for line in open('rs.tbl'):
+for line in open('rse.tbl'):
     line = line.rstrip('\n')
     byte, char = line.split('=', 1)
 
@@ -26,7 +31,7 @@ for pokemon in range(386):
     print(name)            # Bulbasaur
     print('=' * len(name)) # =========
 
-    for page in (1, 2):
+    for page in range(pages):
         while True:
             byte = game.read(1)
             if byte == b'\xff':
