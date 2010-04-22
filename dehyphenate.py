@@ -5,44 +5,63 @@ from collections import OrderedDict as odict
 
 # I'm too lazy to parse the command-line, so you get a module-level constant.
 # This controls the how the flavor text it outputted.
-# raw     - preserve form breaks and soft hyphens
 # cat     - concatenate lines and strip soft hyphens
+# raw     - preserve form feeds and soft hyphens
+# orig    - should round-trip
 # changes - don't show the full flavor text; just the hyphenated words
 #           and how each interpreted by the script
-FORMAT = 'changes'
+FORMAT = 'cat'
 
 f = open(sys.argv[1], encoding="utf-8")
 
 # First things first: parse the flavor text file.
 flavor_texts = odict()
 state = 'pokemon'
-for line in f:
+flavor = []
+next_line = f.readline()
+end = False
+while True:
+    line = next_line
+    if not line:
+        state = 'endflavor'
+        end = True
     line = line.strip()
+    next_line = f.readline()
+    peek = next_line.strip()
+
+    if peek.startswith("=") and peek.replace("=", "") == "":
+        assert len(peek) == len(line)
+        state = 'endflavor'
+
+    if state == 'endflavor':
+        if flavor:
+            flavor.pop() # form feed
+            flavor_texts[pokemon] = ''.join(flavor)
+            flavor[:] = []
+        state = 'pokemon'
+        pokemon = None
+        if end:
+            break
+
     if state == 'pokemon':
-        if line == '':
-            continue
         pokemon = line
         state = 'underline'
     elif state == 'underline':
-        assert line.replace('=', '') == ''
-        assert len(line) == len(pokemon)
-        state = 'page1'
-        flavor = ""
-    elif state in ('page1', 'page2'):
-        if line == '':
-            if state == 'page1':
-                # This is the break between two pages, so add a form feed
-                flavor = flavor + '\f'
-                state = 'page2'
-            elif state == 'page2':
-                flavor_texts[pokemon] = flavor
-                state = 'pokemon'
-            continue
-        flavor += line + '\n'
+        state = 'flavor'
+    elif state == 'flavor':
+        flavor.append(line)
+        if peek != "":
+            flavor.append("\n")
+        else:
+            state = 'pagebreak'
+    elif state == 'pagebreak':
+        if peek == "":
+            pass
+        else:
+            flavor.append("\f")
+            state = 'flavor'
     else:
         raise ValueError(state)
-if state != 'pokemon':
-    flavor_texts[pokemon] = flavor
 
 
 # Load words from the system dictionary
@@ -51,7 +70,8 @@ words = set(x.strip() for x in open('/usr/share/dict/words', encoding='latin-1')
 words.add('pok\xe9mon')
 words.add('telekinetic')
 words.add('unprogrammed')
-words.remove('')
+
+words.discard('')
 
 def isword(word):
     # A little normalization.
@@ -92,10 +112,9 @@ hyphen_pattern = r"""
 ) 
 (?<!-)-           # Separated by a hyphen
 (?P<sep>
- \n               # which occurs at the end of a line
- \f?              # optionally followed by a form feed
+ [\n\f]           # which occurs before a line break or form feed
 )
-(?P<second_half>  # And grab the word which follows it
+(?P<second_half>  # And grab the word which follows it, too
  (?:
   [A-Za-z]
  |
@@ -124,13 +143,22 @@ if FORMAT == 'raw':
         print("=" * len(pokemon))
         print(flavor)
         print()
+elif FORMAT == 'orig':
+    def fix_flavor(flavor):
+        return (flavor.replace("\f", "\n\n")
+                      .replace("\N{soft hyphen}", "-"))
+
+    for pokemon, flavor in flavor_texts.items():
+        print(pokemon)
+        print("=" * len(pokemon))
+        print(fix_flavor(flavor))
+        print()
 elif FORMAT == 'cat':
     def fix_flavor(flavor):
-        flavor = (flavor.replace("\f", "")
-                        .replace("\N{soft hyphen}\n", "")
-                        .replace("-\n", "-")
-                        .replace("\n", " "))
-        return flavor
+        return (flavor.replace("\f", "\n")
+                      .replace("\N{soft hyphen}\n", "")
+                      .replace("-\n", "-")
+                      .replace("\n", " "))
 
     for pokemon, flavor in flavor_texts.items():
         print("{:10s} {}".format(pokemon, fix_flavor(flavor)))
