@@ -12,7 +12,7 @@ from collections import OrderedDict as odict
 #           and how each interpreted by the script
 FORMAT = 'cat'
 
-f = open(sys.argv[1], encoding="utf-8")
+f = open(sys.argv[1], encoding='utf-8')
 
 # First things first: parse the flavor text file.
 flavor_texts = odict()
@@ -65,13 +65,13 @@ while True:
 
 
 # Load words from the system dictionary
-words = set(x.strip() for x in open('/usr/share/dict/words', encoding='latin-1'))
+words = set(x.strip() for x in open("/usr/share/dict/words", encoding='latin-1'))
 # My dictionary is missing a few words
-words.add('pok\xe9mon')
-words.add('telekinetic')
-words.add('unprogrammed')
+words.add("pok\xe9mon")
+words.add("telekinetic")
+words.add("unprogrammed")
 
-words.discard('')
+words.discard("")
 
 def isword(word):
     # A little normalization.
