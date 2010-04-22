@@ -5,12 +5,14 @@ from collections import OrderedDict as odict
 
 # I'm too lazy to parse the command-line, so you get a module-level constant.
 # This controls the how the flavor text it outputted.
-# cat     - concatenate lines and strip soft hyphens
-# raw     - preserve form feeds and soft hyphens
+#
+# oneline - collapse newlines, page breaks, and soft hyphens
+# csv     - output a csv file with the "raw" flavor text
 # orig    - should round-trip
-# changes - don't show the full flavor text; just the hyphenated words
-#           and how each interpreted by the script
-FORMAT = 'cat'
+#
+# changes - don't show the full flavor text--just the hyphenated words
+#           and how they are interpreted by the script
+FORMAT = 'oneline'
 
 f = open(sys.argv[1], encoding='utf-8')
 
@@ -132,12 +134,20 @@ for pokemon, flavor in flavor_texts.items():
         return analyze_word(changes[pokemon], *m.groups())
     flavor_texts[pokemon] = hyphen_re.sub(callback, flavor)
 
-if FORMAT == 'raw':
+if FORMAT == 'oneline':
+    def fix_flavor(flavor):
+        return (flavor.replace("\f", "\n")
+                      .replace("\N{soft hyphen}\n", "")
+                      .replace("-\n", "-")
+                      .replace("\n", " "))
+
     for pokemon, flavor in flavor_texts.items():
-        print(pokemon)
-        print("=" * len(pokemon))
-        print(flavor)
-        print()
+        print("{:10s} {}".format(pokemon, fix_flavor(flavor)))
+elif FORMAT == 'csv':
+    import csv
+    writer = csv.writer(sys.stdout)
+    writer.writerow(["Pok\xe9mon", "Flavor"])
+    writer.writerows(flavor_texts.items())
 elif FORMAT == 'orig':
     def fix_flavor(flavor):
         return (flavor.replace("\f", "\n\n")
@@ -148,15 +158,6 @@ elif FORMAT == 'orig':
         print("=" * len(pokemon))
         print(fix_flavor(flavor))
         print()
-elif FORMAT == 'cat':
-    def fix_flavor(flavor):
-        return (flavor.replace("\f", "\n")
-                      .replace("\N{soft hyphen}\n", "")
-                      .replace("-\n", "-")
-                      .replace("\n", " "))
-
-    for pokemon, flavor in flavor_texts.items():
-        print("{:10s} {}".format(pokemon, fix_flavor(flavor)))
 elif FORMAT == 'changes':
     for pokemon, changed_words in changes.items():
         if not changed_words:
