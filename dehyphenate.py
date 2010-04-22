@@ -96,10 +96,10 @@ def analyze_word(changes, first_half, sep, second_half):
     # If we can remove the hyphen and get a real word, then it's
     # probably a soft hyphen
     if isword(without_hyphen):
-        changes[word] = without_hyphen
+        changes.append((word, without_hyphen))
         return first_half + "\N{soft hyphen}" + sep + second_half
     else:
-        changes[word] = word
+        changes.append((word, word))
         return first_half + "-" + sep + second_half
 
 hyphen_pattern = r"""
@@ -124,18 +124,13 @@ hyphen_pattern = r"""
 """
 hyphen_re = re.compile(hyphen_pattern, re.VERBOSE)
 
+changes = odict()
 for pokemon, flavor in flavor_texts.items():
-    changes = odict()
+    changes[pokemon] = []
 
     def callback(m):
-        return analyze_word(changes, *m.groups())
+        return analyze_word(changes[pokemon], *m.groups())
     flavor_texts[pokemon] = hyphen_re.sub(callback, flavor)
-
-    if FORMAT == 'changes' and changes:
-        print(pokemon, ":", sep="")
-        for from_, to in changes.items():
-            print(from_, "->", to)
-        print()
 
 if FORMAT == 'raw':
     for pokemon, flavor in flavor_texts.items():
@@ -162,3 +157,13 @@ elif FORMAT == 'cat':
 
     for pokemon, flavor in flavor_texts.items():
         print("{:10s} {}".format(pokemon, fix_flavor(flavor)))
+elif FORMAT == 'changes':
+    for pokemon, changed_words in changes.items():
+        if not changed_words:
+            continue
+        print(pokemon, ":", sep="")
+        for from_, to in changed_words:
+            print(from_, "->", to)
+        print()
+else:
+    print("Unknown format: {}".format(FORMAT), file=sys.stderr)
