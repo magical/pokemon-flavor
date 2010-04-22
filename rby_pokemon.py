@@ -42,7 +42,10 @@ for pokemon in range(151):
     print(name)            # Bulbasaur
     print('=' * len(name)) # =========
 
-    game.read(1) # \x00
+    # There's a mysterious extra \x50 between Koffing and Weezing's Yellow
+    # entries; otherwise we could just do game.read(1)
+    while game.read(1) != b'\x00':
+        pass
 
     # flavour text, two pages
     for page in (1, 2):
