@@ -47,6 +47,7 @@ for pokemon in range(386):
     print(name)            # Bulbasaur
     print('=' * len(name)) # =========
 
+    # flavour text, one or two pages
     for page in range(pages):
         while True:
             byte = game.read(1)
