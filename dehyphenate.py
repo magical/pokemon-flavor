@@ -9,7 +9,7 @@ from collections import OrderedDict as odict
 # cat     - concatenate lines and strip soft hyphens
 # changes - don't show the full flavor text; just the hyphenated words
 #           and how each interpreted by the script
-FORMAT = 'cat'
+FORMAT = 'changes'
 
 f = open(sys.argv[1], encoding="utf-8")
 
@@ -51,6 +51,7 @@ words = set(x.strip() for x in open('/usr/share/dict/words', encoding='latin-1')
 words.add('pok\xe9mon')
 words.add('telekinetic')
 words.add('unprogrammed')
+words.remove('')
 
 def isword(word):
     # A little normalization.
@@ -81,7 +82,29 @@ def analyze_word(changes, first_half, sep, second_half):
         changes[word] = word
         return first_half + "-" + sep + second_half
 
-hyphen_re = re.compile(r"([A-Za-z\xe9-]+)(?<!-)-([\n\f]+)([A-Za-z-]+)")
+hyphen_pattern = r"""
+(?P<first_half>   # Grab the first half of a word
+ (?:
+  [A-Za-z\xe9]    # Which consists of alphabetic characters
+ |
+  -(?!-)          # or a solitary hyphens
+ )+
+) 
+(?<!-)-           # Separated by a hyphen
+(?P<sep>
+ \n               # which occurs at the end of a line
+ \f?              # optionally followed by a form feed
+)
+(?P<second_half>  # And grab the word which follows it
+ (?:
+  [A-Za-z]
+ |
+  -(?!-)
+ )+
+)
+"""
+hyphen_re = re.compile(hyphen_pattern, re.VERBOSE)
+
 for pokemon, flavor in flavor_texts.items():
     changes = odict()
 
