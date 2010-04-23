@@ -1,20 +1,48 @@
 #!/usr/bin/env python3.1
 import sys
 import re
+from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from collections import OrderedDict as odict
 
-# I'm too lazy to parse the command-line, so you get a module-level constant.
-# This controls the how the flavor text it outputted.
-#
-# oneline - collapse newlines, page breaks, and soft hyphens
-# csv     - output a csv file with the "raw" flavor text
-# orig    - should round-trip
-#
-# changes - don't show the full flavor text--just the hyphenated words
-#           and how they are interpreted by the script
-FORMAT = 'oneline'
+def myfile(mode='r', encoding=None):
+    if 'b' in mode and encoding is not None:
+        raise ValueError("binary mode can't take an encoding")
+    def inner(path):
+        if path == "-":
+            if mode == 'r':
+                return sys.stdin
+            elif mode == 'w':
+                return sys.stdout
+            elif mode == 'rb':
+                return sys.stdin.buffer
+            elif mode == 'wb':
+                return sys.stdout.buffer
+        else:
+            return open(path, mode=mode, encoding=encoding)
+    return inner
 
-f = open(sys.argv[1], encoding='utf-8')
+arg_parser = ArgumentParser(
+    formatter_class=RawDescriptionHelpFormatter,
+    epilog="""\
+Formats:
+ oneline - collapse newlines, page breaks, and soft hyphens
+ csv     - output a csv file with the "raw" flavor text
+ orig    - should round-trip
+
+ changes - don't show the full flavor text--just the hyphenated words
+           and how they are interpreted by the script
+""")
+arg_parser.add_argument("file", type=myfile('r', encoding="utf-8"),
+    help="The flavor text file you want to dehyphenate")
+arg_parser.add_argument("-f", "--format",
+    metavar='FORMAT',
+    default='oneline',
+    choices=['oneline', 'csv', 'orig', 'changes'],
+    help="Output format")
+
+args = arg_parser.parse_args()
+FORMAT = args.format
+f = args.file
 
 # First things first: parse the flavor text file.
 flavor_texts = odict()
