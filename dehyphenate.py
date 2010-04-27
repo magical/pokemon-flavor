@@ -55,17 +55,20 @@ while True:
     if not line:
         state = 'endflavor'
         end = True
-    line = line.strip()
+    line = line.rstrip("\n")
     next_line = f.readline()
-    peek = next_line.strip()
+    peek = next_line.rstrip("\n")
 
+    # If the next line consists of equals signs, then this line is the
+    # name of a Pokemon. Time to save the previous flavor text.
     if peek.startswith("=") and peek.replace("=", "") == "":
         assert len(peek) == len(line)
         state = 'endflavor'
 
     if state == 'endflavor':
         if flavor:
-            flavor.pop() # form feed
+            if flavor[-1] == "\f":
+                flavor.pop()
             flavor_texts[pokemon] = ''.join(flavor)
             flavor[:] = []
         state = 'pokemon'
@@ -80,12 +83,12 @@ while True:
         state = 'flavor'
     elif state == 'flavor':
         flavor.append(line)
-        if peek != "":
+        if peek.strip() != "":
             flavor.append("\n")
         else:
             state = 'pagebreak'
     elif state == 'pagebreak':
-        if peek == "":
+        if peek.strip() == "":
             pass
         else:
             flavor.append("\f")
